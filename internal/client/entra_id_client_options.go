@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	khttp "github.com/microsoft/kiota-http-go"
 	"golang.org/x/exp/rand"
 )
 
@@ -31,18 +30,12 @@ func ConfigureEntraIDClientOptions(ctx context.Context, config *ProviderData, au
 	tflog.Info(ctx, "Configuring authentication timeout")
 	configureAuthTimeout(ctx, &clientOptions, config)
 
-	httpClient, err := configureAuthClientProxy(ctx, config)
-	if err != nil {
-		tflog.Error(ctx, "Failed to configure HTTP client")
-		return clientOptions, err
+	if config.ClientOptions.UseProxy && config.ClientOptions.ProxyURL != "" {
+		tflog.Warn(ctx, "Proxy settings in provider configuration are not applied to Entra ID authentication requests. "+
+			"Please rely on HTTP_PROXY/HTTPS_PROXY/NO_PROXY environment variables if a proxy is required for token acquisition.")
 	}
 
-	if config.ClientOptions.TimeoutSeconds > 0 {
-		httpClient.Timeout = time.Duration(config.ClientOptions.TimeoutSeconds) * time.Second
-		tflog.Debug(ctx, fmt.Sprintf("Auth client timeout set to %v", httpClient.Timeout))
-	}
-
-	clientOptions.Transport = httpClient
+	tflog.Info(ctx, "Using Azure SDK default HTTP client for Entra ID token acquisition")
 
 	tflog.Info(ctx, "Entra ID client options configuration completed successfully")
 	return clientOptions, nil
@@ -125,40 +118,4 @@ func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptio
 	}
 }
 
-func configureAuthClientProxy(ctx context.Context, config *ProviderData) (*http.Client, error) {
-	if config.ClientOptions.UseProxy && config.ClientOptions.ProxyURL != "" {
-		return configureProxyHTTPClient(ctx, config.ClientOptions)
-	}
-
-	tflog.Info(ctx, "Using default HTTP client without proxy")
-	return khttp.GetDefaultClient(), nil
-}
-
-func configureProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
-	tflog.Info(ctx, "Attempting to configure proxy with URL: "+clientOptions.ProxyURL)
-
-	var httpClient *http.Client
-	var err error
-
-	if clientOptions.ProxyUsername != "" && clientOptions.ProxyPassword != "" {
-		tflog.Info(ctx, "Configuring authenticated proxy")
-		httpClient, err = khttp.GetClientWithAuthenticatedProxySettings(
-			clientOptions.ProxyURL,
-			clientOptions.ProxyUsername,
-			clientOptions.ProxyPassword,
-		)
-	} else {
-		tflog.Info(ctx, "Configuring unauthenticated proxy")
-		httpClient, err = khttp.GetClientWithProxySettings(
-			clientOptions.ProxyURL,
-		)
-	}
-
-	if err != nil {
-		tflog.Debug(ctx, fmt.Sprintf("Failed to create HTTP client with proxy settings: %v", err))
-		return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
-	}
-
-	tflog.Debug(ctx, "Proxy settings configured successfully")
-	return httpClient, nil
-}
+// configureAuthClientProxy removed: Entra ID token requests now rely on the Azure SDK's default HTTP client.
