@@ -3,12 +3,14 @@ package graphBetaNetworkWebContentFilteringPolicyRule
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -118,10 +120,10 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				},
 			},
 			"priority": schema.Int64Attribute{
-				MarkdownDescription: "The rule priority. Lower numbers are evaluated before higher numbers.",
+				MarkdownDescription: "The rule priority. Lower numbers are evaluated before higher numbers. The Entra portal accepts values from 100 to 65000.",
 				Required:            true,
 				Validators: []validator.Int64{
-					int64validator.AtLeast(1),
+					int64validator.Between(100, 65000),
 				},
 			},
 			"action": schema.StringAttribute{
@@ -139,9 +141,14 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				},
 			},
 			"urls_or_fqdns": schema.SetAttribute{
-				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `*.example.com`.",
+				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `*.example.com` or `example.com/path`. Use `*` to match any URL or FQDN.",
 				ElementType:         types.StringType,
 				Optional:            true,
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(regexp.MustCompile(`^(\*|[a-zA-Z0-9\-.*]+(/[^?#]*)?)$`), "must be '*' or a URL/FQDN pattern without scheme, query string, or fragment"),
+					),
+				},
 			},
 			"web_categories": schema.SetAttribute{
 				MarkdownDescription: "Web category IDs for the rule, for example `AlcoholAndTobacco`. Category IDs are passed through to Microsoft Graph unchanged.",
@@ -153,7 +160,7 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				ElementType:         types.StringType,
 				Optional:            true,
 				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(stringvalidator.OneOf("get", "post", "put", "patch", "delete", "head", "options")),
+					setvalidator.ValueStringsAre(stringvalidator.OneOf("get", "post", "put", "patch", "delete")),
 				},
 			},
 			"session_types": schema.SetAttribute{
@@ -165,17 +172,28 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				},
 			},
 			"custom_headers": schema.ListNestedAttribute{
-				MarkdownDescription: "Custom response headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`.",
+				MarkdownDescription: "Custom response headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`.",
 				Optional:            true,
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(10),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"header_name": schema.StringAttribute{
 							MarkdownDescription: "The custom header name.",
 							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthAtMost(128),
+								stringvalidator.RegexMatches(regexp.MustCompile(`^[!#$%&'*+\-.^_`+"`"+`|~0-9A-Za-z]+$`), "must be a valid HTTP header name"),
+							},
 						},
 						"header_value": schema.StringAttribute{
 							MarkdownDescription: "The custom header value.",
 							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthAtMost(2048),
+								stringvalidator.RegexMatches(regexp.MustCompile(`^[\x20-\x7E]*$`), "must contain only printable ASCII characters"),
+							},
 						},
 					},
 				},

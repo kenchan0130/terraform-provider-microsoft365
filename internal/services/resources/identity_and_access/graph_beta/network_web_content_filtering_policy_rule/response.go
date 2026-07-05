@@ -12,6 +12,7 @@ const (
 	webFilteringActionBlockODataType            = "#microsoft.graph.networkaccess.webFilteringActionBlock"
 	webFilteringURLDestinationODataType         = "#microsoft.graph.networkaccess.webFilteringUrlDestination"
 	webFilteringWebCategoryDestinationODataType = "#microsoft.graph.networkaccess.webFilteringWebCategoryDestination"
+	headerModificationAddODataType              = "#microsoft.graph.networkaccess.headerModificationAdd"
 )
 
 type webContentFilteringPolicyRuleResponse struct {
@@ -90,6 +91,7 @@ func (r *webContentFilteringPolicyRuleResponse) GetFieldDeserializers() map[stri
 			action, ok := value.(*actionResponse)
 			if ok {
 				r.action = terraformAction(action.odataType)
+				r.customHeaders = action.customHeaders
 			}
 			return nil
 		},
@@ -154,7 +156,8 @@ func (r *webContentFilteringPolicyRuleResponse) GetFieldDeserializers() map[stri
 }
 
 type actionResponse struct {
-	odataType *string
+	odataType     *string
+	customHeaders []customHeaderResponse
 }
 
 func createActionResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
@@ -173,6 +176,58 @@ func (r *actionResponse) GetFieldDeserializers() map[string]func(s.ParseNode) er
 				return err
 			}
 			r.odataType = value
+			return nil
+		},
+		"headerSettings": func(n s.ParseNode) error {
+			value, err := n.GetObjectValue(createHeaderSettingsResponseFromDiscriminatorValue)
+			if err != nil {
+				return err
+			}
+			if value == nil {
+				return nil
+			}
+			headerSettings, ok := value.(*headerSettingsResponse)
+			if ok {
+				r.customHeaders = headerSettings.modifications
+			}
+			return nil
+		},
+	}
+}
+
+type headerSettingsResponse struct {
+	modifications []customHeaderResponse
+}
+
+func createHeaderSettingsResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+	return &headerSettingsResponse{}, nil
+}
+
+func (r *headerSettingsResponse) Serialize(writer s.SerializationWriter) error {
+	return nil
+}
+
+func (r *headerSettingsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+	return map[string]func(s.ParseNode) error{
+		"modifications": func(n s.ParseNode) error {
+			values, err := n.GetCollectionOfObjectValues(createCustomHeaderResponseFromDiscriminatorValue)
+			if err != nil {
+				return err
+			}
+			if values == nil {
+				return nil
+			}
+			r.modifications = make([]customHeaderResponse, 0, len(values))
+			for _, value := range values {
+				if value == nil {
+					continue
+				}
+				header, ok := value.(*customHeaderResponse)
+				if !ok {
+					continue
+				}
+				r.modifications = append(r.modifications, *header)
+			}
 			return nil
 		},
 	}

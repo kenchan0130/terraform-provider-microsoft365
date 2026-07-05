@@ -28,13 +28,14 @@ POST /beta/networkaccess/webFilteringPolicies/{webFilteringPolicyId}/policyRules
 ```
 
 with `@odata.type = #microsoft.graph.networkaccess.webFilteringRule`, `action.@odata.type`, `settings.status`, and `matchingConditions.destinations.targets`.
+When custom headers are configured for an allow rule, the portal serializes them under `action.headerSettings.modifications`.
 
 Destination targets observed from the portal include:
 
 - `#microsoft.graph.networkaccess.webFilteringUrlDestination`
 - `#microsoft.graph.networkaccess.webFilteringWebCategoryDestination`
 
-Web category IDs are passed through unchanged. For example, the portal was observed sending `AlcoholAndTobacco`.
+Web category IDs are passed through unchanged. For example, the portal was observed sending `AlcoholAndTobacco` and `AIAgents`.
 
 ## Microsoft Graph API Permissions
 

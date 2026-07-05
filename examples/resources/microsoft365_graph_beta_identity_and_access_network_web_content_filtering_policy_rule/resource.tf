@@ -37,3 +37,16 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
     }
   ]
 }
+
+resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule" "category_only" {
+  web_content_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy.example.id
+
+  name        = "Block AI Agents Category"
+  description = "Block traffic that matches a selected web category"
+  priority    = 300
+  action      = "block"
+  status      = "enabled"
+
+  web_categories = ["AIAgents"]
+  session_types  = ["user", "agent"]
+}

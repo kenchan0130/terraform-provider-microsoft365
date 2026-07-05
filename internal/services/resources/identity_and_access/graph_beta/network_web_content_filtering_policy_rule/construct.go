@@ -52,14 +52,21 @@ func constructResource(ctx context.Context, data *NetworkWebContentFilteringPoli
 		})
 	}
 
+	action := &actionRequestBody{
+		odataType: graphActionODataType(data.Action.ValueString()),
+	}
+	if len(customHeaders) > 0 {
+		action.headerSettings = &headerSettingsRequestBody{
+			modifications: customHeaders,
+		}
+	}
+
 	requestBody := &webContentFilteringPolicyRuleRequestBody{
 		odataType:   webFilteringRuleODataType,
 		name:        data.Name.ValueStringPointer(),
 		description: data.Description.ValueStringPointer(),
-		action: &actionRequestBody{
-			odataType: graphActionODataType(data.Action.ValueString()),
-		},
-		priority: data.Priority.ValueInt64Pointer(),
+		action:      action,
+		priority:    data.Priority.ValueInt64Pointer(),
 		settings: &ruleSettingsRequestBody{
 			status: data.Status.ValueStringPointer(),
 		},
@@ -75,9 +82,6 @@ func constructResource(ctx context.Context, data *NetworkWebContentFilteringPoli
 		requestBody.matchingConditions.sources = &sourcesRequestBody{
 			sessionType: commaStringPointer(sessionTypes),
 		}
-	}
-	if len(customHeaders) > 0 {
-		requestBody.customHeaders = customHeaders
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
@@ -117,6 +121,7 @@ func customHeaderValues(ctx context.Context, value types.List) ([]s.Parsable, er
 	result := make([]s.Parsable, 0, len(headers))
 	for _, header := range headers {
 		result = append(result, &customHeaderRequestBody{
+			odataType:   headerModificationAddODataType,
 			headerName:  header.HeaderName.ValueStringPointer(),
 			headerValue: header.HeaderValue.ValueStringPointer(),
 		})
@@ -142,7 +147,6 @@ type webContentFilteringPolicyRuleRequestBody struct {
 	priority           *int64
 	settings           *ruleSettingsRequestBody
 	matchingConditions *matchingConditionsRequestBody
-	customHeaders      []s.Parsable
 }
 
 func (b *webContentFilteringPolicyRuleRequestBody) Serialize(writer s.SerializationWriter) error {
@@ -167,11 +171,6 @@ func (b *webContentFilteringPolicyRuleRequestBody) Serialize(writer s.Serializat
 	if err := writer.WriteObjectValue("matchingConditions", b.matchingConditions); err != nil {
 		return err
 	}
-	if len(b.customHeaders) > 0 {
-		if err := writer.WriteCollectionOfObjectValues("customHeaders", b.customHeaders); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
@@ -181,14 +180,36 @@ func (b *webContentFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[s
 }
 
 type actionRequestBody struct {
-	odataType string
+	odataType      string
+	headerSettings *headerSettingsRequestBody
 }
 
 func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
-	return writer.WriteStringValue("@odata.type", &b.odataType)
+	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
+		return err
+	}
+	if b.headerSettings != nil {
+		if err := writer.WriteObjectValue("headerSettings", b.headerSettings); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (b *actionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+	return map[string]func(s.ParseNode) error{}
+}
+
+type headerSettingsRequestBody struct {
+	modifications []s.Parsable
+}
+
+func (b *headerSettingsRequestBody) Serialize(writer s.SerializationWriter) error {
+	return writer.WriteCollectionOfObjectValues("modifications", b.modifications)
+}
+
+func (b *headerSettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 
@@ -275,11 +296,15 @@ func (b *sourcesRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode
 }
 
 type customHeaderRequestBody struct {
+	odataType   string
 	headerName  *string
 	headerValue *string
 }
 
 func (b *customHeaderRequestBody) Serialize(writer s.SerializationWriter) error {
+	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
+		return err
+	}
 	if err := writer.WriteStringValue("headerName", b.headerName); err != nil {
 		return err
 	}
