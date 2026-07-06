@@ -127,7 +127,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 
 ### Optional
 
-- `custom_headers` (Attributes List) Custom response headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. (see [below for nested schema](#nestedatt--custom_headers))
+- `custom_headers` (Attributes List) Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. (see [below for nested schema](#nestedatt--custom_headers))
 - `description` (String) Optional description of the web content filtering rule. Maximum length is 8192 characters.
 - `http_methods` (Set of String) HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.
 - `session_types` (Set of String) Session types that must match the rule. Possible values are `user` and `agent`.
