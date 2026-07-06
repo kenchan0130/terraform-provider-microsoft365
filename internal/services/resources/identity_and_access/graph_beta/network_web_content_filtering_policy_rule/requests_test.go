@@ -15,6 +15,10 @@ import (
 
 func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPortalPayload(t *testing.T) {
 	ctx := context.Background()
+	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"*.example.com", "www.MySite.com/a/*"})
+	if diags.HasError() {
+		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
+	}
 	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
 	if diags.HasError() {
 		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
@@ -34,7 +38,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPor
 		Action:        types.StringValue("allow"),
 		Priority:      types.Int64Value(100),
 		Status:        types.StringValue("enabled"),
-		UrlsOrFqdns:   types.StringValue("*.example.com, www.MySite.com/a/*"),
+		UrlsOrFqdns:   urlsOrFqdns,
 		WebCategories: webCategories,
 		HTTPMethods:   httpMethods,
 		SessionTypes:  sessionTypes,
@@ -156,6 +160,10 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedCat
 
 func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeadersUnderAction(t *testing.T) {
 	ctx := context.Background()
+	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
+	if diags.HasError() {
+		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
+	}
 	customHeaders, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []customHeaderModel{
 		{
 			HeaderName:  types.StringValue("X-Managed-By"),
@@ -172,7 +180,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeade
 		Action:        types.StringValue("allow"),
 		Priority:      types.Int64Value(200),
 		Status:        types.StringValue("enabled"),
-		UrlsOrFqdns:   types.StringValue("headers.example.com"),
+		UrlsOrFqdns:   urlsOrFqdns,
 		CustomHeaders: customHeaders,
 	})
 
@@ -219,6 +227,10 @@ func TestConstructResourceRequiresAtLeastOneDestination(t *testing.T) {
 
 func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T) {
 	ctx := context.Background()
+	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
+	if diags.HasError() {
+		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
+	}
 
 	tests := []struct {
 		name        string
@@ -260,7 +272,7 @@ func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T
 				Action:        types.StringValue("allow"),
 				Priority:      types.Int64Value(100),
 				Status:        types.StringValue("enabled"),
-				UrlsOrFqdns:   types.StringValue("headers.example.com"),
+				UrlsOrFqdns:   urlsOrFqdns,
 				CustomHeaders: customHeaders,
 			})
 			if err == nil {

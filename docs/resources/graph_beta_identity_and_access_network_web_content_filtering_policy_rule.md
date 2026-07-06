@@ -41,7 +41,7 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 ## Behavior Notes
 
 - At least one destination must be configured using `urls_or_fqdns`, `web_categories`, or both.
-- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal accepts these as comma-separated text, and Terraform uses the same comma-separated string format, for example `www.MySite.com, www.MySite.com/a/b/c, www.MySite.com/a/*, *.mysite.com`. The provider does not validate URL/FQDN pattern syntax locally; unsupported values are returned by Microsoft Graph.
+- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal displays these as comma-separated text, but Microsoft Graph stores them as a values array and Terraform follows that API shape with one set element per destination, for example `["www.MySite.com", "www.MySite.com/a/b/c", "www.MySite.com/a/*", "*.mysite.com"]`. The provider does not validate URL/FQDN pattern syntax locally; unsupported values are returned by Microsoft Graph.
 - `web_categories` values are category IDs sent to Microsoft Graph unchanged. The portal category picker displays friendly names, but the API payload uses IDs such as `AIAgents`.
 - If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
 - Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
@@ -78,7 +78,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
   action      = "allow"
   status      = "enabled"
 
-  urls_or_fqdns  = "*.example.com"
+  urls_or_fqdns  = ["*.example.com"]
   web_categories = ["AlcoholAndTobacco"]
   http_methods   = ["get"]
   session_types  = ["user", "agent"]
@@ -93,7 +93,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
   action      = "allow"
   status      = "enabled"
 
-  urls_or_fqdns = "headers.example.com"
+  urls_or_fqdns = ["headers.example.com"]
 
   custom_headers = [
     {
@@ -135,7 +135,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 - `http_methods` (Set of String) HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.
 - `session_types` (Set of String) Session types that must match the rule. Possible values are `user` and `agent`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `urls_or_fqdns` (String) Comma-separated URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. This mirrors the Entra portal text box; the provider splits the string into the Graph values array.
+- `urls_or_fqdns` (Set of String) URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. The Entra portal shows these as comma-separated text, while Microsoft Graph stores them as a values array; Terraform follows the Graph shape with one set element per destination.
 - `web_categories` (Set of String) Web category IDs for the rule, for example `AlcoholAndTobacco`. Category IDs are passed through to Microsoft Graph unchanged.
 
 ### Read-Only

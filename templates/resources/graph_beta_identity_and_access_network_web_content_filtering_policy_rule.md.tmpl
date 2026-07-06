@@ -41,7 +41,7 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 ## Behavior Notes
 
 - At least one destination must be configured using `urls_or_fqdns`, `web_categories`, or both.
-- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal accepts these as comma-separated text, and Terraform uses the same comma-separated string format, for example `www.MySite.com, www.MySite.com/a/b/c, www.MySite.com/a/*, *.mysite.com`. The provider does not validate URL/FQDN pattern syntax locally; unsupported values are returned by Microsoft Graph.
+- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal displays these as comma-separated text, but Microsoft Graph stores them as a values array and Terraform follows that API shape with one set element per destination, for example `["www.MySite.com", "www.MySite.com/a/b/c", "www.MySite.com/a/*", "*.mysite.com"]`. The provider does not validate URL/FQDN pattern syntax locally; unsupported values are returned by Microsoft Graph.
 - `web_categories` values are category IDs sent to Microsoft Graph unchanged. The portal category picker displays friendly names, but the API payload uses IDs such as `AIAgents`.
 - If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
 - Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.

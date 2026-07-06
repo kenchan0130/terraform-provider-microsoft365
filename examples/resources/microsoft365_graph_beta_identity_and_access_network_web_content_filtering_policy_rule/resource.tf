@@ -13,7 +13,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
   action      = "allow"
   status      = "enabled"
 
-  urls_or_fqdns  = "*.example.com"
+  urls_or_fqdns  = ["*.example.com"]
   web_categories = ["AlcoholAndTobacco"]
   http_methods   = ["get"]
   session_types  = ["user", "agent"]
@@ -28,7 +28,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
   action      = "allow"
   status      = "enabled"
 
-  urls_or_fqdns = "headers.example.com"
+  urls_or_fqdns = ["headers.example.com"]
 
   custom_headers = [
     {
