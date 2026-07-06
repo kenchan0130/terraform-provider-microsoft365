@@ -204,6 +204,24 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeade
 	}
 }
 
+func TestConstructResourceRequiresAtLeastOneDestination(t *testing.T) {
+	ctx := context.Background()
+
+	_, err := constructResource(ctx, &NetworkWebContentFilteringPolicyRuleResourceModel{
+		Name:        types.StringValue("missing-destination"),
+		Description: types.StringValue(""),
+		Action:      types.StringValue("block"),
+		Priority:    types.Int64Value(100),
+		Status:      types.StringValue("enabled"),
+	})
+	if err == nil {
+		t.Fatal("constructResource returned nil error, expected destination validation error")
+	}
+	if !strings.Contains(err.Error(), "at least one destination") {
+		t.Fatalf("constructResource error = %q, expected destination validation error", err.Error())
+	}
+}
+
 func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T) {
 	ctx := context.Background()
 	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})

@@ -38,6 +38,14 @@ Destination targets observed from the portal include:
 
 Web category IDs are passed through unchanged. For example, the portal was observed sending `AlcoholAndTobacco` and `AIAgents`.
 
+## Behavior Notes
+
+- At least one destination must be configured using `urls_or_fqdns`, `web_categories`, or both.
+- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal accepts these as comma-separated text; Terraform models each value as a separate set element, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`.
+- `web_categories` values are category IDs sent to Microsoft Graph unchanged. The portal category picker displays friendly names, but the API payload uses IDs such as `AIAgents`.
+- If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
+- `custom_headers` inserts custom HTTP request headers into matching traffic only when `action = "allow"`. This can be useful for tagging traffic for downstream services or routing decisions, but it should not be used for secrets or sensitive user data because the header can be forwarded to the destination.
+
 ## Microsoft Graph API Permissions
 
 The following client `application` permissions are needed in order to use this {{.Type | lower}}:

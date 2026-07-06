@@ -68,7 +68,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 
 ### Optional
 
-- `description` (String) Optional description of the web content filtering policy. Maximum length is 1500 characters.
+- `description` (String) Optional description of the web content filtering policy. Maximum length is 8192 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

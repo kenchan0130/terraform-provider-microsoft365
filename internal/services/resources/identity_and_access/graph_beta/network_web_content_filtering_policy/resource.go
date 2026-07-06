@@ -88,11 +88,11 @@ func (r *NetworkWebContentFilteringPolicyResource) Schema(ctx context.Context, r
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description of the web content filtering policy. Maximum length is 1500 characters.",
+				MarkdownDescription: "Optional description of the web content filtering policy. Maximum length is 8192 characters.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1500),
+					stringvalidator.LengthAtMost(8192),
 				},
 			},
 			"default_action": schema.StringAttribute{

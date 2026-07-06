@@ -112,11 +112,11 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description of the web content filtering rule. Maximum length is 1500 characters.",
+				MarkdownDescription: "Optional description of the web content filtering rule. Maximum length is 8192 characters.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1500),
+					stringvalidator.LengthAtMost(8192),
 				},
 			},
 			"priority": schema.Int64Attribute{
@@ -141,7 +141,7 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				},
 			},
 			"urls_or_fqdns": schema.SetAttribute{
-				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `*.example.com` or `example.com/path`. Use `*` to match any URL or FQDN.",
+				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. The Entra portal accepts these as comma-separated text; Terraform models each value as a separate set element.",
 				ElementType:         types.StringType,
 				Optional:            true,
 				Validators: []validator.Set{

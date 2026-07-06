@@ -76,7 +76,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile"
 
 ### Optional
 
-- `description` (String) Optional description of the Global Secure Access security profile. Maximum length is 1500 characters.
+- `description` (String) Optional description of the Global Secure Access security profile. Maximum length is 8192 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

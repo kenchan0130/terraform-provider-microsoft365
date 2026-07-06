@@ -38,7 +38,14 @@ func constructResource(ctx context.Context, data *NetworkWebContentFilteringPoli
 	if data.Action.ValueString() != "allow" && len(customHeaders) > 0 {
 		return nil, fmt.Errorf("custom_headers can only be used when action is allow")
 	}
+	if len(urlsOrFqdns) == 0 && len(webCategories) == 0 {
+		return nil, fmt.Errorf("at least one destination must be specified using urls_or_fqdns or web_categories")
+	}
 
+	// The Entra portal and Graph endpoint reject rules without a destination.
+	// Portal UI text asks for at least one URL/FQDN or web category; Terraform
+	// models the same inputs as separate set entries instead of a comma-delimited
+	// text box.
 	targets := make([]s.Parsable, 0, 2)
 	if len(urlsOrFqdns) > 0 {
 		targets = append(targets, &destinationTargetRequestBody{
