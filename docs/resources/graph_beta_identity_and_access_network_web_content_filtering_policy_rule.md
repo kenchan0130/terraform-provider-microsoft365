@@ -29,6 +29,7 @@ POST /beta/networkaccess/webFilteringPolicies/{webFilteringPolicyId}/policyRules
 
 with `@odata.type = #microsoft.graph.networkaccess.webFilteringRule`, `action.@odata.type`, `settings.status`, and `matchingConditions.destinations.targets`.
 When custom headers are configured for an allow rule, the portal serializes them under `action.headerSettings.modifications`.
+Custom header values cannot contain CR/LF characters or escaped CR/LF sequences.
 
 Destination targets observed from the portal include:
 

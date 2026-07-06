@@ -3,6 +3,7 @@ package graphBetaNetworkWebContentFilteringPolicyRule
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
@@ -120,6 +121,11 @@ func customHeaderValues(ctx context.Context, value types.List) ([]s.Parsable, er
 
 	result := make([]s.Parsable, 0, len(headers))
 	for _, header := range headers {
+		headerName := header.HeaderName.ValueString()
+		headerValue := header.HeaderValue.ValueString()
+		if hasCustomHeaderValueLineBreakEscape(headerValue) {
+			return nil, fmt.Errorf("custom_headers header_value for %q must not contain escaped CR or LF sequences", headerName)
+		}
 		result = append(result, &customHeaderRequestBody{
 			odataType:   headerModificationAddODataType,
 			headerName:  header.HeaderName.ValueStringPointer(),
@@ -129,6 +135,16 @@ func customHeaderValues(ctx context.Context, value types.List) ([]s.Parsable, er
 
 	return result, nil
 }
+
+func hasCustomHeaderValueLineBreakEscape(value string) bool {
+	return customHeaderLineBreakEscapePattern.MatchString(value)
+}
+
+// The Entra portal custom header validator rejects literal CR/LF characters and
+// common escaped forms such as %0d, %0a, \x0d, and \u000a. Literal CR/LF are
+// already rejected by the schema's printable-ASCII validator; this pattern keeps
+// Terraform from accepting escaped values that the portal blocks.
+var customHeaderLineBreakEscapePattern = regexp.MustCompile(`(?i)(%0[da]|\\x0[da]|\\u000[da])`)
 
 func commaStringPointer(values []string) *string {
 	if len(values) == 0 {
