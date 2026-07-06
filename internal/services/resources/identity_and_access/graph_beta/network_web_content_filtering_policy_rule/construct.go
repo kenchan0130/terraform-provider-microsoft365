@@ -15,10 +15,7 @@ import (
 func constructResource(ctx context.Context, data *NetworkWebContentFilteringPolicyRuleResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	urlsOrFqdns, err := stringSetValues(ctx, data.UrlsOrFqdns)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read urls_or_fqdns: %w", err)
-	}
+	urlsOrFqdns := commaSeparatedStringValues(data.UrlsOrFqdns)
 	webCategories, err := stringSetValues(ctx, data.WebCategories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read web_categories: %w", err)
@@ -43,9 +40,9 @@ func constructResource(ctx context.Context, data *NetworkWebContentFilteringPoli
 	}
 
 	// The Entra portal and Graph endpoint reject rules without a destination.
-	// Portal UI text asks for at least one URL/FQDN or web category; Terraform
-	// models the same inputs as separate set entries instead of a comma-delimited
-	// text box.
+	// Portal UI text asks for at least one URL/FQDN or web category. The UI keeps
+	// URL/FQDN entries in one comma-delimited text box, so Terraform mirrors that
+	// shape and splits the string into the Graph values array here.
 	targets := make([]s.Parsable, 0, 2)
 	if len(urlsOrFqdns) > 0 {
 		targets = append(targets, &destinationTargetRequestBody{
@@ -113,6 +110,23 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func commaSeparatedStringValues(value types.String) []string {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	parts := strings.Split(value.ValueString(), ",")
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
 }
 
 func customHeaderValues(ctx context.Context, value types.List) ([]s.Parsable, error) {

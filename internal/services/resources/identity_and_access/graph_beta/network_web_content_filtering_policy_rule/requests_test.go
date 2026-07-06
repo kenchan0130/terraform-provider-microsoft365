@@ -15,10 +15,6 @@ import (
 
 func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPortalPayload(t *testing.T) {
 	ctx := context.Background()
-	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"*.example.com"})
-	if diags.HasError() {
-		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
-	}
 	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
 	if diags.HasError() {
 		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
@@ -38,7 +34,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPor
 		Action:        types.StringValue("allow"),
 		Priority:      types.Int64Value(100),
 		Status:        types.StringValue("enabled"),
-		UrlsOrFqdns:   urlsOrFqdns,
+		UrlsOrFqdns:   types.StringValue("*.example.com, www.MySite.com/a/*"),
 		WebCategories: webCategories,
 		HTTPMethods:   httpMethods,
 		SessionTypes:  sessionTypes,
@@ -91,6 +87,9 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPor
 	}
 	if urlTarget["values"].([]any)[0] != "*.example.com" {
 		t.Fatalf("url target value = %#v, expected *.example.com", urlTarget["values"].([]any)[0])
+	}
+	if urlTarget["values"].([]any)[1] != "www.MySite.com/a/*" {
+		t.Fatalf("url target value = %#v, expected www.MySite.com/a/*", urlTarget["values"].([]any)[1])
 	}
 	categoryTarget := targets[1].(map[string]any)
 	if categoryTarget["@odata.type"] != webFilteringWebCategoryDestinationODataType {
@@ -157,10 +156,6 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedCat
 
 func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeadersUnderAction(t *testing.T) {
 	ctx := context.Background()
-	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
-	if diags.HasError() {
-		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
-	}
 	customHeaders, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []customHeaderModel{
 		{
 			HeaderName:  types.StringValue("X-Managed-By"),
@@ -177,7 +172,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeade
 		Action:        types.StringValue("allow"),
 		Priority:      types.Int64Value(200),
 		Status:        types.StringValue("enabled"),
-		UrlsOrFqdns:   urlsOrFqdns,
+		UrlsOrFqdns:   types.StringValue("headers.example.com"),
 		CustomHeaders: customHeaders,
 	})
 
@@ -224,10 +219,6 @@ func TestConstructResourceRequiresAtLeastOneDestination(t *testing.T) {
 
 func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T) {
 	ctx := context.Background()
-	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
-	if diags.HasError() {
-		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
-	}
 
 	tests := []struct {
 		name        string
@@ -269,7 +260,7 @@ func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T
 				Action:        types.StringValue("allow"),
 				Priority:      types.Int64Value(100),
 				Status:        types.StringValue("enabled"),
-				UrlsOrFqdns:   urlsOrFqdns,
+				UrlsOrFqdns:   types.StringValue("headers.example.com"),
 				CustomHeaders: customHeaders,
 			})
 			if err == nil {

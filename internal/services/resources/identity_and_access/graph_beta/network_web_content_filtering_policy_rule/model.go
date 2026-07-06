@@ -15,7 +15,7 @@ type NetworkWebContentFilteringPolicyRuleResourceModel struct {
 	Priority                    types.Int64    `tfsdk:"priority"`
 	Action                      types.String   `tfsdk:"action"`
 	Status                      types.String   `tfsdk:"status"`
-	UrlsOrFqdns                 types.Set      `tfsdk:"urls_or_fqdns"`
+	UrlsOrFqdns                 types.String   `tfsdk:"urls_or_fqdns"`
 	WebCategories               types.Set      `tfsdk:"web_categories"`
 	HTTPMethods                 types.Set      `tfsdk:"http_methods"`
 	SessionTypes                types.Set      `tfsdk:"session_types"`

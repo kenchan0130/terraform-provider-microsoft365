@@ -140,15 +140,9 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 					stringvalidator.OneOf("enabled", "disabled"),
 				},
 			},
-			"urls_or_fqdns": schema.SetAttribute{
-				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. The Entra portal accepts these as comma-separated text; Terraform models each value as a separate set element.",
-				ElementType:         types.StringType,
+			"urls_or_fqdns": schema.StringAttribute{
+				MarkdownDescription: "Comma-separated URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. This mirrors the Entra portal text box; the provider splits the string into the Graph values array.",
 				Optional:            true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(regexp.MustCompile(`^(\*|[a-zA-Z0-9\-.*]+(/[^?#]*)?)$`), "must be '*' or a URL/FQDN pattern without scheme, query string, or fragment"),
-					),
-				},
 			},
 			"web_categories": schema.SetAttribute{
 				MarkdownDescription: "Web category IDs for the rule, for example `AlcoholAndTobacco`. Category IDs are passed through to Microsoft Graph unchanged.",

@@ -22,7 +22,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkWebContentFilte
 	data.Priority = convert.GraphToFrameworkInt64(remoteResource.priority)
 	data.Action = convert.GraphToFrameworkString(remoteResource.action)
 	data.Status = convert.GraphToFrameworkString(remoteResource.status)
-	data.UrlsOrFqdns = convert.GraphToFrameworkStringSet(ctx, remoteResource.urlsOrFqdns)
+	data.UrlsOrFqdns = convert.GraphToFrameworkString(commaStringPointer(remoteResource.urlsOrFqdns))
 	data.WebCategories = convert.GraphToFrameworkStringSet(ctx, remoteResource.webCategories)
 	data.HTTPMethods = convert.GraphToFrameworkStringSet(ctx, remoteResource.httpMethods)
 	data.SessionTypes = convert.GraphToFrameworkStringSet(ctx, remoteResource.sessionTypes)
