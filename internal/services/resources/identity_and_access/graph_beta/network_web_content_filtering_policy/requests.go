@@ -11,8 +11,11 @@ import (
 
 const (
 	// This endpoint is used by the Microsoft Entra Global Secure Access web
-	// content filtering blade. It is not currently present in Microsoft Graph
-	// beta metadata or the generated Go SDK.
+	// content filtering blade. It is not currently present in Microsoft Graph beta
+	// metadata or the generated Go SDK, so this resource uses a custom Kiota
+	// RequestInformation path instead of a generated request builder. Do not
+	// confuse it with the documented /networkAccess/filteringPolicies surface:
+	// https://learn.microsoft.com/graph/api/resources/networkaccess-filteringpolicy
 	webContentFilteringPoliciesURLTemplate   = "{+baseurl}/networkaccess/webFilteringPolicies"
 	webContentFilteringPolicyItemURLTemplate = webContentFilteringPoliciesURLTemplate + "/{webContentFilteringPolicyId}"
 )

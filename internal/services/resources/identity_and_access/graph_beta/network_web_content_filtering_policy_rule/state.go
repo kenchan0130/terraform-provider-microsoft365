@@ -22,6 +22,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkWebContentFilte
 	data.Priority = convert.GraphToFrameworkInt64(remoteResource.priority)
 	data.Action = convert.GraphToFrameworkString(remoteResource.action)
 	data.Status = convert.GraphToFrameworkString(remoteResource.status)
+	// The portal exposes URL/FQDN destinations as a single comma-delimited text
+	// box, while Graph returns them as a values array under
+	// webFilteringUrlDestination. Join them back to the Terraform string form to
+	// avoid perpetual drift after refresh.
 	data.UrlsOrFqdns = convert.GraphToFrameworkString(commaStringPointer(remoteResource.urlsOrFqdns))
 	data.WebCategories = convert.GraphToFrameworkStringSet(ctx, remoteResource.webCategories)
 	data.HTTPMethods = convert.GraphToFrameworkStringSet(ctx, remoteResource.httpMethods)

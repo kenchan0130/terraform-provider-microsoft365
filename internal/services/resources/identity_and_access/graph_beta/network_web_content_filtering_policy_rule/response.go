@@ -7,6 +7,10 @@ import (
 )
 
 const (
+	// These OData discriminator values are observed from the Entra portal Web
+	// content filtering blade. They are not exposed as webFiltering* models in
+	// the Microsoft Graph beta SDK, so request and response bodies are parsed with
+	// local Kiota Parsable implementations.
 	webFilteringRuleODataType                   = "#microsoft.graph.networkaccess.webFilteringRule"
 	webFilteringActionAllowODataType            = "#microsoft.graph.networkaccess.webFilteringActionAllow"
 	webFilteringActionBlockODataType            = "#microsoft.graph.networkaccess.webFilteringActionBlock"

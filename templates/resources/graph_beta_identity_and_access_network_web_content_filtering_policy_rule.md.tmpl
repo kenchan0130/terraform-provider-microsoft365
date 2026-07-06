@@ -41,10 +41,13 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 ## Behavior Notes
 
 - At least one destination must be configured using `urls_or_fqdns`, `web_categories`, or both.
-- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal accepts these as comma-separated text, and Terraform uses the same comma-separated string format, for example `www.MySite.com, www.MySite.com/a/b/c, www.MySite.com/a/*, *.mysite.com`.
+- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal accepts these as comma-separated text, and Terraform uses the same comma-separated string format, for example `www.MySite.com, www.MySite.com/a/b/c, www.MySite.com/a/*, *.mysite.com`. The provider does not validate URL/FQDN pattern syntax locally; unsupported values are returned by Microsoft Graph.
 - `web_categories` values are category IDs sent to Microsoft Graph unchanged. The portal category picker displays friendly names, but the API payload uses IDs such as `AIAgents`.
 - If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
+- Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
+- `action = "allow"` permits matching traffic and can add custom request headers. `action = "block"` blocks matching traffic and cannot be combined with `custom_headers`.
 - `custom_headers` inserts custom HTTP request headers into matching traffic only when `action = "allow"`. This can be useful for tagging traffic for downstream services or routing decisions, but it should not be used for secrets or sensitive user data because the header can be forwarded to the destination.
+- Custom header values cannot include CR/LF characters or common escaped CR/LF sequences. This mirrors the Entra portal validation and prevents header-injection style inputs before the request reaches Graph.
 
 ## Microsoft Graph API Permissions
 

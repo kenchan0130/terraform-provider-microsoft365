@@ -12,6 +12,23 @@ import (
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
+// constructResource builds the portal-observed webFilteringRule payload.
+//
+// Microsoft Learn documents the generic filteringRule hierarchy, but not
+// /networkaccess/webFilteringPolicies/{id}/policyRules or the webFiltering*
+// OData discriminator values used by the Entra Global Secure Access Web content
+// filtering blade:
+// https://learn.microsoft.com/graph/api/resources/networkaccess-filteringrule
+//
+// The shape below intentionally follows captured portal traffic:
+//   - URL/FQDN and category destinations are sibling entries in
+//     matchingConditions.destinations.targets.
+//   - URL/FQDN input is one comma-delimited text value in the portal and this
+//     Terraform schema, then split into the Graph values array.
+//   - HTTP methods and session types are serialized back to comma-separated
+//     strings because that is what the endpoint returns and accepts.
+//   - Custom request header insertions are nested under
+//     action.headerSettings.modifications for allow rules.
 func constructResource(ctx context.Context, data *NetworkWebContentFilteringPolicyRuleResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -129,6 +146,12 @@ func commaSeparatedStringValues(value types.String) []string {
 	return result
 }
 
+// customHeaderValues preserves the Entra portal's header insertion model. These
+// are request headers added to traffic that matches an allow rule, not response
+// headers returned by the destination. The portal rejects CR/LF injection both
+// as literal control characters and as common escaped forms; schema validation
+// handles literal control characters and hasCustomHeaderValueLineBreakEscape
+// handles escaped forms observed in the portal validator.
 func customHeaderValues(ctx context.Context, value types.List) ([]s.Parsable, error) {
 	if value.IsNull() || value.IsUnknown() {
 		return nil, nil

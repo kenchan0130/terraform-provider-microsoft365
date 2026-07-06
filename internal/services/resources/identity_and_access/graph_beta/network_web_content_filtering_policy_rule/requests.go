@@ -10,6 +10,11 @@ import (
 )
 
 const (
+	// The webFilteringPolicy policyRules endpoint is used by the Entra portal but
+	// is not represented by generated Microsoft Graph beta SDK request builders.
+	// Keep these templates aligned with observed portal traffic rather than the
+	// documented generic filteringPolicy/policyRules endpoint:
+	// https://learn.microsoft.com/graph/api/networkaccess-filteringpolicy-post-policyrules
 	webContentFilteringPolicyRulesURLTemplate    = "{+baseurl}/networkaccess/webFilteringPolicies/{webContentFilteringPolicyId}/policyRules"
 	webContentFilteringPolicyRuleItemURLTemplate = webContentFilteringPolicyRulesURLTemplate + "/{policyRuleId}"
 )
