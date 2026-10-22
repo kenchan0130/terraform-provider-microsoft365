@@ -35,7 +35,7 @@ The following client `application` permissions are needed in order to use this r
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v1.4.0 | Preview| Initial release |
+| Unreleased | Experimental | Initial release |
 
 ## Example Usage
 
